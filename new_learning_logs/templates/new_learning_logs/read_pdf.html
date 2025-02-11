@@ -1,0 +1,60 @@
+{% extends "new_learning_logs/base.html" %}
+
+{% block page_header %}
+<h2>Feed The Mind</h2>
+{% endblock page_header %}
+
+{% block content %}
+<style>
+    .pdf-content {
+        white-space: pre-wrap; /* Preserve white spaces and line breaks */
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+    }
+</style>
+<!-- Form to upload PDF -->
+<p>Select a PDF file to upload and read its content:</p>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="pdf_file">Select PDF:</label>
+    <input type="file" name="pdf_file" id="pdf_file" accept=".pdf">
+    <button type="submit" class="btn btn-primary">Upload and Read</button>
+</form>
+
+<!-- Display the current page of the PDF -->
+{% if page_obj %}
+    <h3>Page {{ page_obj.number }} of {{ num_pages }}</h3>
+    <div class="pdf-content">
+        <p>{{ page_obj.object_list.0|safe }}</p>
+    </div>
+    
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+        
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </div>
+{% endif %}
+
+<!-- PDF Content -->
+{% if pdf_content %}
+    <h3>PDF Content:</h3>
+    <div>
+        <!-- Use |safe to render the HTML content safely -->
+        {{ pdf_content|safe }}
+    </div>
+    <pre>{{ pdf_content }}</pre>
+{% else %}
+    <p>No PDF content to display.</p>
+{% endif %}
+{% endblock content %}

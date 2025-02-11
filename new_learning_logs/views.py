@@ -2,9 +2,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from .models import Topic, Entry
-
 from .forms import TopicForm, EntryForm
+from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator
+from PyPDF2 import PdfReader
+import fitz  # PyMuPDF
+import os
 
+
+# Define a directory for storing uploaded files
+UPLOAD_DIR = 'uploaded_pdfs'
 # Create your views here.
 def index(request):
     '''The home page for New Learning Log.'''
@@ -87,3 +94,43 @@ def edit_entry(request, entry_id):
     # Display a blank or invalid form.
     context = {'entry': None, 'topic': topic,'form': form}
     return render(request, 'new_learning_logs/new_topic.html', context)
+
+@login_required
+def read_pdf_view(request):
+    pdf_content = []
+    num_pages = 0
+    page_number = request.GET.get('page', 1)
+
+    if request.method == 'POST' and 'pdf_file' in request.FILES:
+        pdf_file = request.FILES["pdf_file"]
+        fs = FileSystemStorage(location=UPLOAD_DIR)
+        saved_file = fs.save(pdf_file.name, pdf_file)
+        request.session['saved_pdf_path'] = os.path.join(UPLOAD_DIR, pdf_file.name)
+
+    # Retrieve the saved PDF file path
+    pdf_path = request.session.get('saved_pdf_path', None)
+    if pdf_path and os.path.exists(pdf_path):
+        with open(pdf_path, 'rb') as file:
+            pdf_reader = PdfReader(file)
+            num_pages = len(pdf_reader.pages)
+            pdf_content = [page.extract_text() or "No content on this page" for page in pdf_reader.pages]
+
+    # Paginate the extracted content
+    paginator = Paginator(pdf_content, 1)  # Show one page at a time
+    page_obj = paginator.get_page(page_number)
+
+        
+        
+    context = {
+        'page_obj': page_obj,
+        'num_pages': num_pages,
+    }
+    return render(request, 'new_learning_logs/read_pdf.html', context)
+
+def extract_pdf_content(pdf_file):
+    pdf_reader = PyPDF2.PdfReader(pdf_file)
+    pdf_text = ""
+    for page_num in range(len(pdf_reader.pages)):
+        page = pdf_reader.pages[page_num]
+        pdf_text += page.extract_text() + "\n"
+    return pdf_text
