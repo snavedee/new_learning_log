@@ -2,12 +2,15 @@
 
 from django.urls import path
 from new_learning_logs import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'new_learning_logs'
+
 urlpatterns = [
     # Home page
     path('', views.index, name='index'),
-     # Page that shows all topics.
+    # Page that shows all topics.
     path('topics/', views.topics, name='topics'),
     # Detail page for a single topic.
     path('topics/<int:topic_id>/', views.topic, name='topic'),
@@ -20,3 +23,7 @@ urlpatterns = [
     # Page for opening books
     path('read_pdf/', views.read_pdf_view, name='read_pdf'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  # Optional: Serve static files in development
