@@ -21,7 +21,7 @@
         </div>
         <div class="col-md-2 col-12 h-100">
             <div class="notes-section h-100 border rounded p-2 d-flex flex-column">
-                <h5 class="mb-2">Summary</h5>
+                <h5 class="mb-2">...outsideTheBox</h5>
                 <form id="notesForm" class="d-flex flex-column h-100">
                     {% csrf_token %}
                     <textarea name="note_text" id="noteText" class="form-control flex-grow-1 mb-2" rows="5" placeholder="Summarize key points...">{% if note %}{{ note.text }}{% endif %}</textarea>
